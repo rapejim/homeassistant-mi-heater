@@ -10,8 +10,7 @@ import voluptuous as vol
 
 from homeassistant.components.climate import ClimateEntity, PLATFORM_SCHEMA
 from homeassistant.components.climate.const import (
-    DOMAIN, HVAC_MODE_HEAT,HVAC_MODE_COOL, HVAC_MODE_OFF,
-    SUPPORT_TARGET_TEMPERATURE, SUPPORT_FAN_MODE)
+    DOMAIN, HVACMode, ClimateEntityFeature)
 from homeassistant.const import (
     ATTR_TEMPERATURE, CONF_HOST, CONF_NAME, CONF_TOKEN, CONF_DEVICE_ID,
     STATE_ON, STATE_OFF, TEMP_CELSIUS)
@@ -28,7 +27,7 @@ _LOGGER = logging.getLogger(__name__)
 
 CONF_MODEL = 'model'
 REQUIREMENTS = ['python-miio>=0.5.0']
-SUPPORT_FLAGS = (SUPPORT_TARGET_TEMPERATURE)
+SUPPORT_FLAGS = (ClimateEntityFeature.TARGET_TEMPERATURE)
 SERVICE_SET_ROOM_TEMP = 'miheater_set_room_temperature'
 PRECISION = 1
 MIN_TEMP = 18
@@ -133,11 +132,11 @@ class MiHeater(ClimateEntity):
         
     @property
     def hvac_mode(self):
-        return HVAC_MODE_HEAT if self._state['power'] else HVAC_MODE_OFF
+        return HVACMode.HEAT if self._state['power'] else HVACMode.OFF
 
     @property
     def hvac_modes(self):
-        return [HVAC_MODE_HEAT, HVAC_MODE_OFF]
+        return [HVACMode.HEAT, HVACMode.OFF]
 
 
     @property
@@ -290,9 +289,9 @@ class MiHeater(ClimateEntity):
 
     async def async_set_hvac_mode(self, hvac_mode):
         """Set operation mode."""
-        if hvac_mode  == HVAC_MODE_HEAT or hvac_mode  == HVAC_MODE_COOL:
+        if hvac_mode  == HVACMode.HEAT or hvac_mode  == HVACMode.COOL:
             await self.async_turn_on()
-        elif hvac_mode  == HVAC_MODE_OFF:
+        elif hvac_mode  == HVACMode.OFF:
             await self.async_turn_off()
         else:
             _LOGGER.error("Unrecognized operation mode: %s", hvac_mode)
