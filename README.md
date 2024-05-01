@@ -8,7 +8,7 @@
 
 
 
-Xiaomi Smart Space Heater S（zhimi.heater.mc2） component for home-assistant
+Xiaomi Smart Space Heater S（zhimi.heater.mc2 or zhimi.heater.mc2a） component for home-assistant
 ![p](https://cdn.weasy.io/users/xiaomi/catalog/mi_smart_space_heater_s.jpg)
 
 Xiaomi Mi Smart Space Heater 1S (zhimi.heater.zb1) component for home-assistant
