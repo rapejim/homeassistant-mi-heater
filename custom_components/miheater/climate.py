@@ -40,6 +40,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Optional(CONF_DEVICE_ID): cv.string,
     vol.Optional(CONF_MODEL, default=None): vol.In(
     ['zhimi.heater.mc2',
+     'zhimi.heater.mc2a',
      'zhimi.heater.zb1',
      'zhimi.heater.za2',
      'zhimi.heater.za1', None]),
@@ -88,7 +89,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
         async def set_room_temp(service):
             """Set room temp."""
             
-            if DEVICE_MODEL == "zhimi.heater.mc2":
+            if DEVICE_MODEL == "zhimi.heater.mc2" or DEVICE_MODEL == "zhimi.heater.mc2a":
                 aux = device.raw_command('get_properties', [{"siid":2,"piid":5,"did":DEVICE_ID}])
             elif DEVICE_MODEL == "zhimi.heater.zb1" or DEVICE_MODEL == "zhimi.heater.za2":
                 aux = device.raw_command('get_properties', [{"siid":2,"piid":6}])
@@ -185,7 +186,7 @@ class MiHeater(ClimateEntity):
             #device_info = self._device.info()
             #DEVICE_MODEL = device_info.model
                
-            if self._model == "zhimi.heater.mc2":
+            if self._model == "zhimi.heater.mc2" or self._model == "zhimi.heater.mc2a":
                 power=self._device.raw_command('get_properties', [{"did":DEVICE_ID,"siid":2,"piid":1}])
                 target_temperature=self._device.raw_command('get_properties', [{"did":DEVICE_ID,"siid":2,"piid":5}])
                 current_temperature=self._device.raw_command('get_properties', [{"did":DEVICE_ID,"siid":4,"piid":7}])
@@ -248,7 +249,7 @@ class MiHeater(ClimateEntity):
         #device_info = self._device.info()
         #DEVICE_MODEL = device_info.model      
         
-        if self._model == "zhimi.heater.mc2":              
+        if self._model == "zhimi.heater.mc2" or self._model == "zhimi.heater.mc2a":              
             self._device.raw_command('set_properties',[{"value":int(temperature),"siid":2,"piid":5, "did":DEVICE_ID}])
         elif self._model == "zhimi.heater.zb1" or self._model == "zhimi.heater.za2" :
             self._device.raw_command('set_properties',[{"value":int(temperature),"siid":2,"piid":6}])
@@ -263,7 +264,7 @@ class MiHeater(ClimateEntity):
         #device_info = self._device.info()
         #DEVICE_MODEL = device_info.model      
         
-        if self._model == "zhimi.heater.mc2":              
+        if self._model == "zhimi.heater.mc2" or self._model == "zhimi.heater.mc2a":              
             self._device.raw_command('set_properties',[{"value":True,"siid":2,"piid":1, "did":DEVICE_ID}])
         elif self._model == "zhimi.heater.zb1" or self._model == "zhimi.heater.za2" :
             self._device.raw_command('set_properties',[{"value":True,"siid":2,"piid":2}])
@@ -278,7 +279,7 @@ class MiHeater(ClimateEntity):
         #device_info = self._device.info()
         #DEVICE_MODEL = device_info.model      
         
-        if self._model == "zhimi.heater.mc2":              
+        if self._model == "zhimi.heater.mc2" or self._model == "zhimi.heater.mc2a":              
             self._device.raw_command('set_properties',[{"value":False,"siid":2,"piid":1, "did":DEVICE_ID}])
         elif self._model == "zhimi.heater.zb1" or self._model == "zhimi.heater.za2" :
             self._device.raw_command('set_properties',[{"value":False,"siid":2,"piid":2}])
