@@ -7,21 +7,16 @@
 import logging
 
 import voluptuous as vol
-
-from homeassistant.components.climate import ClimateEntity, PLATFORM_SCHEMA
-from homeassistant.components.climate.const import (
-    DOMAIN, HVACMode, ClimateEntityFeature)
-from homeassistant.const import (
-    ATTR_TEMPERATURE, CONF_HOST, CONF_NAME, CONF_TOKEN, CONF_DEVICE_ID,
-    STATE_ON, STATE_OFF, UnitOfTemperature)
+from homeassistant.components.climate import PLATFORM_SCHEMA, ClimateEntity
+from homeassistant.components.climate.const import (DOMAIN,
+                                                    ClimateEntityFeature,
+                                                    HVACMode)
+from homeassistant.const import (ATTR_TEMPERATURE, CONF_DEVICE_ID, CONF_HOST,
+                                 CONF_NAME, CONF_TOKEN, UnitOfTemperature)
+from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity import generate_entity_id
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
-from homeassistant.exceptions import PlatformNotReady
-
-from miio import Device,DeviceException
-
-
+from miio import Device, DeviceException
 
 _LOGGER = logging.getLogger(__name__)
 
