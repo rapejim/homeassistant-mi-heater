@@ -2,6 +2,7 @@
   "domain": "miheater",
   "name": "miHeater",
   "documentation": "https://github.com/ee02217/homeassistant-mi-heater",
+  "integration_type": "entity",
   "dependencies": [],
   "codeowners": [],
   "requirements": [],
