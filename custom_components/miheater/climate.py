@@ -101,7 +101,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
             temperature=aux[0]["value"]
             await miHeater.async_set_temperature(temperature)
 
-        hass.services.async_register(DOMAIN, SERVICE_SET_ROOM_TEMP,
+        hass.services._async_register(DOMAIN, SERVICE_SET_ROOM_TEMP,
                                      set_room_temp, schema=SET_ROOM_TEMP_SCHEMA)
     except DeviceException:
         _LOGGER.exception('Fail to setup Xiaomi heater')
