@@ -30,8 +30,8 @@ MIN_TEMP_ZB1 = 16
 MAX_TEMP = 28
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_HOST): cv.string,
-    vol.Required(CONF_NAME): cv.string,
     vol.Required(CONF_TOKEN): cv.string,
+    vol.Optional(CONF_NAME, default='Xiaomi Heater'): cv.string,
     vol.Optional(CONF_DEVICE_ID): cv.string,
     vol.Optional(CONF_MODEL, default=None): vol.In(
     ['zhimi.heater.mc2',
