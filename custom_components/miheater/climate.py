@@ -162,10 +162,11 @@ class MiHeater(ClimateEntity):
         """Return the current temperature."""
         return self._state['current_temperature']
 
-    @property
-    def current_humidity(self):
-        """Return the current humidity."""
-        return self._state['humidity']
+    if DEVICE_MODEL == "zhimi.heater.zb1" or DEVICE_MODEL == "zhimi.heater.za2" or DEVICE_MODEL == "zhimi.heater.za1" :
+        @property
+        def current_humidity(self):
+            """Return the current humidity."""
+            return self._state['humidity']
 
 
     @property
