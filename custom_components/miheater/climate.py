@@ -118,15 +118,25 @@ class MiHeater(ClimateEntity):
         # Disable turn on/off backwards compatibility for void log warning
         self._enable_turn_on_off_backwards_compatibility = False
 
+    if DEVICE_MODEL == "zhimi.heater.zb1" or DEVICE_MODEL == "zhimi.heater.za2" or DEVICE_MODEL == "zhimi.heater.za1" :
+        @property
+        def current_humidity(self):
+            """Return the current humidity."""
+            return self._state['humidity']
+
     @property
-    def name(self):
-        """Return the name of the device."""
-        return self._name
+    def current_temperature(self):
+        """Return the current temperature."""
+        return self._state['current_temperature']
 
     @property
     def device(self):
         """Return the model of the device."""
         return self._model
+
+    @property
+    def extra_state_attributes(self):
+        return self._state
         
     @property
     def hvac_mode(self):
@@ -137,9 +147,37 @@ class MiHeater(ClimateEntity):
         return [HVACMode.HEAT, HVACMode.OFF]
 
     @property
-    def supported_features(self):
-        """Return the list of supported features."""
-        return SUPPORT_FLAGS
+    def is_on(self):
+        """Return true if heater is on."""
+        return self._state['power']
+
+    @property
+    def min_temp(self):
+        """Return the minimum temperature."""
+        if self._model == "zhimi.heater.zb1" or self._model == "zhimi.heater.za2" or self._model == "zhimi.heater.za1" :
+            return MIN_TEMP_ZB1 
+        else:
+            return MIN_TEMP
+
+    @property
+    def max_temp(self):
+        """Return the maximum temperature."""
+        return MAX_TEMP
+
+    @property
+    def name(self):
+        """Return the name of the device."""
+        return self._name
+
+    @property
+    def target_temperature(self):
+        """Return the temperature we try to reach."""
+        return self._state['target_temperature']
+
+    @property
+    def target_temperature_step(self):
+        """Return the supported step of target temperature."""
+        return 1
 
     @property
     def temperature_unit(self):
@@ -152,26 +190,9 @@ class MiHeater(ClimateEntity):
     #     return PRECISION
 
     @property
-    def target_temperature(self):
-        """Return the temperature we try to reach."""
-        return self._state['target_temperature']
-
-    @property
-    def current_temperature(self):
-        """Return the current temperature."""
-        return self._state['current_temperature']
-
-    if DEVICE_MODEL == "zhimi.heater.zb1" or DEVICE_MODEL == "zhimi.heater.za2" or DEVICE_MODEL == "zhimi.heater.za1" :
-        @property
-        def current_humidity(self):
-            """Return the current humidity."""
-            return self._state['humidity']
-
-
-    @property
-    def target_temperature_step(self):
-        """Return the supported step of target temperature."""
-        return 1
+    def supported_features(self):
+        """Return the list of supported features."""
+        return SUPPORT_FLAGS
 
     def getAttrData(self):
 
@@ -209,28 +230,6 @@ class MiHeater(ClimateEntity):
             _LOGGER.exception("Fail to get_prop from Xiaomi heater")
             self._state = None
             raise PlatformNotReady
-
-    @property
-    def extra_state_attributes(self):
-        return self._state
-
-    @property
-    def is_on(self):
-        """Return true if heater is on."""
-        return self._state['power']
-
-    @property
-    def min_temp(self):
-        """Return the minimum temperature."""
-        if self._model == "zhimi.heater.zb1" or self._model == "zhimi.heater.za2" or self._model == "zhimi.heater.za1" :
-            return MIN_TEMP_ZB1 
-        else:
-            return MIN_TEMP
-
-    @property
-    def max_temp(self):
-        """Return the maximum temperature."""
-        return MAX_TEMP
 
     async def async_set_temperature(self, **kwargs):
         """Set new target temperature."""
