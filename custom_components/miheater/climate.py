@@ -11,8 +11,8 @@ from homeassistant.components.climate import PLATFORM_SCHEMA, ClimateEntity
 from homeassistant.components.climate.const import (DOMAIN,
                                                     ClimateEntityFeature,
                                                     HVACMode)
-from homeassistant.const import (ATTR_TEMPERATURE, CONF_DEVICE_ID, CONF_HOST,
-                                 CONF_NAME, CONF_TOKEN, UnitOfTemperature)
+from homeassistant.const import (ATTR_TEMPERATURE, CONF_HOST, CONF_NAME,
+                                 CONF_TOKEN, UnitOfTemperature)
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.entity import generate_entity_id
@@ -21,18 +21,14 @@ from miio import Device, DeviceException
 _LOGGER = logging.getLogger(__name__)
 
 CONF_MODEL = 'model'
-REQUIREMENTS = ['python-miio>=0.5.0']
-SUPPORT_FLAGS = (ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON)
-SERVICE_SET_ROOM_TEMP = 'miheater_set_room_temperature'
-PRECISION = 1
+DEVICE_MODEL = ""
+MAX_TEMP = 28
 MIN_TEMP = 18
 MIN_TEMP_ZB1 = 16
-MAX_TEMP = 28
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
     vol.Required(CONF_HOST): cv.string,
     vol.Required(CONF_TOKEN): cv.string,
     vol.Optional(CONF_NAME, default='Xiaomi Heater'): cv.string,
-    vol.Optional(CONF_DEVICE_ID): cv.string,
     vol.Optional(CONF_MODEL, default=None): vol.In(
     ['zhimi.heater.mc2',
      'zhimi.heater.mc2a',
@@ -40,13 +36,14 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
      'zhimi.heater.za2',
      'zhimi.heater.za1', None]),
 })
-
+REQUIREMENTS = ['python-miio>=0.5.0']
+SERVICE_SET_ROOM_TEMP = 'miheater_set_room_temperature'
 SET_ROOM_TEMP_SCHEMA = vol.Schema({
     vol.Optional('temperature'): cv.positive_int
 })
+SUPPORT_FLAGS = (ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON)
 
-DEVICE_MODEL = ""
-DEVICE_ID = ""
+
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
     """Perform the setup for Xiaomi heaters."""
@@ -54,7 +51,6 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     name = config.get(CONF_NAME)
     token = config.get(CONF_TOKEN)
     model = config.get(CONF_MODEL)
-    DEVICE_ID = config.get(CONF_DEVICE_ID)
 
     _LOGGER.debug("Initializing Xiaomi heaters with host %s (token %s...)", host, token[:5])
 
@@ -84,7 +80,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
             """Set room temp."""
             
             if DEVICE_MODEL == "zhimi.heater.mc2" or DEVICE_MODEL == "zhimi.heater.mc2a":
-                aux = device.raw_command('get_properties', [{"siid":2,"piid":5,"did":DEVICE_ID}])
+                aux = device.raw_command('get_properties', [{"siid":2,"piid":5,"did":None}])
             elif DEVICE_MODEL == "zhimi.heater.zb1" or DEVICE_MODEL == "zhimi.heater.za2":
                 aux = device.raw_command('get_properties', [{"siid":2,"piid":6}])
             elif DEVICE_MODEL == "zhimi.heater.za1":
@@ -115,8 +111,7 @@ class MiHeater(ClimateEntity):
         self._attr_unique_id = unique_id
         self.entity_id = generate_entity_id('climate.{}', unique_id, hass=_hass)
         self.getAttrData()
-        # Disable turn on/off backwards compatibility for void log warning
-        self._enable_turn_on_off_backwards_compatibility = False
+        self._enable_turn_on_off_backwards_compatibility = False # For avoid warning logs
 
     if DEVICE_MODEL == "zhimi.heater.zb1" or DEVICE_MODEL == "zhimi.heater.za2" or DEVICE_MODEL == "zhimi.heater.za1" :
         @property
@@ -184,11 +179,6 @@ class MiHeater(ClimateEntity):
         """Return the unit of measurement which this thermostat uses."""
         return UnitOfTemperature.CELSIUS
 
-    # @property
-    # def precision(self):
-    #     """Return the unit of measurement which this thermostat uses."""
-    #     return PRECISION
-
     @property
     def supported_features(self):
         """Return the list of supported features."""
@@ -198,31 +188,27 @@ class MiHeater(ClimateEntity):
 
         try:
             data = {}
-
-            #device_info = self._device.info()
-            #DEVICE_MODEL = device_info.model
                
             if self._model == "zhimi.heater.mc2" or self._model == "zhimi.heater.mc2a":
-                power=self._device.raw_command('get_properties', [{"did":DEVICE_ID,"siid":2,"piid":1}])
-                target_temperature=self._device.raw_command('get_properties', [{"did":DEVICE_ID,"siid":2,"piid":5}])
-                current_temperature=self._device.raw_command('get_properties', [{"did":DEVICE_ID,"siid":4,"piid":7}])
+                power=self._device.raw_command('get_properties', [{"siid":2,"piid":1,"did":None}])
+                target_temperature=self._device.raw_command('get_properties', [{"siid":2,"piid":5,"did":None}])
+                current_temperature=self._device.raw_command('get_properties', [{"siid":4,"piid":7,"did":None}])
             elif self._model == "zhimi.heater.zb1" or self._model == "zhimi.heater.za2" :
                 power=self._device.raw_command('get_properties', [{"siid":2,"piid":2}])
-                humidity=self._device.raw_command('get_properties', [{"siid":5,"piid":7}])
                 target_temperature=self._device.raw_command('get_properties', [{"siid":2,"piid":6}])
                 current_temperature=self._device.raw_command('get_properties', [{"siid":5,"piid":8}])
+                humidity=self._device.raw_command('get_properties', [{"siid":5,"piid":7}])
                 data['humidity'] = humidity[0]["value"]
             elif self._model == "zhimi.heater.za1" :
                 power=self._device.raw_command('get_properties', [{"siid":2,"piid":1}])
-                humidity=self._device.raw_command('get_properties', [{"siid":3,"piid":2}])
                 target_temperature=self._device.raw_command('get_properties', [{"siid":2,"piid":2}])
                 current_temperature=self._device.raw_command('get_properties', [{"siid":3,"piid":1}])
+                humidity=self._device.raw_command('get_properties', [{"siid":3,"piid":2}])
                 data['humidity'] = humidity[0]["value"]
             else:  
                 _LOGGER.exception("Unsupported model: %s", self._model)
 
             data['power'] = power[0]["value"]
-            
             data['target_temperature'] = target_temperature[0]["value"]
             data['current_temperature'] = current_temperature[0]["value"]
             self._state = data
@@ -238,12 +224,9 @@ class MiHeater(ClimateEntity):
         if temperature is None:
             _LOGGER.error("Wrong temperature: %s", temperature)
             return
-
-        #device_info = self._device.info()
-        #DEVICE_MODEL = device_info.model      
         
         if self._model == "zhimi.heater.mc2" or self._model == "zhimi.heater.mc2a":              
-            self._device.raw_command('set_properties',[{"value":int(temperature),"siid":2,"piid":5, "did":DEVICE_ID}])
+            self._device.raw_command('set_properties',[{"value":int(temperature),"siid":2,"piid":5, "did":None}])
         elif self._model == "zhimi.heater.zb1" or self._model == "zhimi.heater.za2" :
             self._device.raw_command('set_properties',[{"value":int(temperature),"siid":2,"piid":6}])
         elif self._model == "zhimi.heater.za1" :
@@ -253,12 +236,8 @@ class MiHeater(ClimateEntity):
 
     async def async_turn_on(self):
         """Turn Mill unit on."""
-
-        #device_info = self._device.info()
-        #DEVICE_MODEL = device_info.model      
-        
         if self._model == "zhimi.heater.mc2" or self._model == "zhimi.heater.mc2a":              
-            self._device.raw_command('set_properties',[{"value":True,"siid":2,"piid":1, "did":DEVICE_ID}])
+            self._device.raw_command('set_properties',[{"value":True,"siid":2,"piid":1, "did":None}])
         elif self._model == "zhimi.heater.zb1" or self._model == "zhimi.heater.za2" :
             self._device.raw_command('set_properties',[{"value":True,"siid":2,"piid":2}])
         elif self._model == "zhimi.heater.za1" :
@@ -269,11 +248,8 @@ class MiHeater(ClimateEntity):
 
     async def async_turn_off(self):
         """Turn Mill unit off."""
-        #device_info = self._device.info()
-        #DEVICE_MODEL = device_info.model      
-        
         if self._model == "zhimi.heater.mc2" or self._model == "zhimi.heater.mc2a":              
-            self._device.raw_command('set_properties',[{"value":False,"siid":2,"piid":1, "did":DEVICE_ID}])
+            self._device.raw_command('set_properties',[{"value":False,"siid":2,"piid":1, "did":None}])
         elif self._model == "zhimi.heater.zb1" or self._model == "zhimi.heater.za2" :
             self._device.raw_command('set_properties',[{"value":False,"siid":2,"piid":2}])
         elif self._model == "zhimi.heater.za1" :
